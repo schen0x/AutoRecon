@@ -3,7 +3,7 @@
 # About This Fork: a Docker Wrapper for AutoRecon
 
 1. clone the repo to kali
-2. `cd ./docker-wrapper/system-dep`, `./build-dep.sh`. (build the kali system and the dependencies of autorecon)
+2. `cd ./docker-wrapper/system-dep`, `./build-dep.sh`. (pull the image of OS, install all dependencies)
 3. `cd ./docker-wrapper/`, `./build-recon.sh` (pull this repo and build autorecon)
 4. Good to go. Use autorecon. `mkdir $PWD/working`
 4. `sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib3rius/autorecon`
