@@ -1,5 +1,13 @@
 > It's like bowling with bumpers. - [@ippsec](https://twitter.com/ippsec)
 
+# About This Fork: a Docker Wrapper for AutoRecon
+
+1. clone the repo to kali
+2. `cd ./docker-wrapper/system-dep`, `./build-dep.sh`. (build the kali system and the dependencies of autorecon)
+3. `cd ./docker-wrapper/`, `./build-recon.sh` (pull this repo and build autorecon)
+4. Good to go. Use autorecon. `mkdir $PWD/working`
+4. `sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib3rius/autorecon`
+
 # AutoRecon
 
 AutoRecon is a multi-threaded network reconnaissance tool which performs automated enumeration of services. It is intended as a time-saving tool for use in CTFs and other penetration testing environments (e.g. OSCP). It may also be useful in real-world engagements.
