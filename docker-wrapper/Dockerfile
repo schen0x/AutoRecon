@@ -7,5 +7,5 @@ FROM autorecon/dep
 RUN python3 -m pip install --user pipx
 RUN python3 -m pipx ensurepath
 RUN python3 -m pip install git+https://github.com/schen0x/AutoRecon.git
-RUN echo "Defaults	secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/kali/.local/bin"" >> /etc/sudoers
+RUN echo -en 'Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/kali/.local/bin"' >> /etc/sudoers
 ENTRYPOINT ["autorecon"]
