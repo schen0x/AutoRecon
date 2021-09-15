@@ -6,7 +6,7 @@
 2. `cd ./docker-wrapper/system-dep`, `./build-dep.sh`. (pull the image of OS, install all dependencies)
 3. `cd ./docker-wrapper/`, `./build-recon.sh` (pull this repo and build autorecon)
 4. Good to go. Use autorecon. `mkdir $PWD/working`
-4. `sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib3rius/autorecon`
+4. `sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib3rius/autorecon 127.0.0.1 127.0.0.2 [more options]`
 
 # AutoRecon
 
