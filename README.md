@@ -1,12 +1,28 @@
 > It's like bowling with bumpers. - [@ippsec](https://twitter.com/ippsec)
 
-# About This Fork: a Docker Wrapper for AutoRecon
+# About This Fork: a DOCKER WRAPPER for AutoRecon
 
 1. clone the repo to kali
 2. `cd ./docker-wrapper/system-dep`, `./build-dep.sh`. (pull the image of OS, install all dependencies)
 3. `cd ./docker-wrapper/`, `./build-recon.sh` (pull this repo and build autorecon)
 4. Good to go. Use autorecon. `mkdir $PWD/working`
-4. `sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib3rius/autorecon 127.0.0.1 127.0.0.2 [more options]`
+5. `sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib3rius/autorecon 127.0.0.1 127.0.0.2 [more options]` the options are the same with the original tool.
+
+```sh
+sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib3rius/autorecon 127.0.0.1 127.0.0.2 --dirbuster.wordlist '/usr/share/seclists/Discovery/Web-Content/common.txt'
+sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib3rius/autorecon 127.0.0.1 127.0.0.2 --proxychains --dirbuster.wordlist '/usr/share/seclists/Discovery/Web-Content/common.txt'
+```
+
+## USE DOCKER, PROs and CONs
+
+### PROs
+
+1. Could be used outside a kali VM.
+2. Provide a more isolated environment.
+
+### CONs
+
+1. You have to install/update some big(mainly 300M+ seclist) repo again inside the container. It could take up some space and time.
 
 # AutoRecon
 
