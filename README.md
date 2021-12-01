@@ -26,7 +26,7 @@ sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib
 
 ### CONs
 
-1. You have to install/update some big(mainly 300M+ seclist) repo again inside the container. It could take up some space and time.
+1. You have to install/update some big(mainly 300M+ seclist) repo again inside the container. It takes up more space, and takes some time to build during the first time setup.
 
 # AutoRecon
 
