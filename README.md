@@ -16,6 +16,7 @@ sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib
 1. Clone the repo
 2. Run the script `./docker-wrapper/system-dep/build-dep.sh`. The script will build a docker image containing Kali OS and stable tools that the AutoRecon depends on.
 3. Run the script `./docker-wrapper/build-recon.sh`. The script will pull this repo and build autorecon.
+4. Run `sudo docker image ls`, to check the images we just built.
 
 ## USE DOCKER, PROs and CONs
 
