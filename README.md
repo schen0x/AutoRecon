@@ -2,16 +2,20 @@
 
 # About This Fork: a DOCKER WRAPPER for AutoRecon
 
-1. clone the repo to kali
-2. `cd ./docker-wrapper/system-dep`, `./build-dep.sh`. (pull the image of OS, install all dependencies)
-3. `cd ./docker-wrapper/`, `./build-recon.sh` (pull this repo and build autorecon)
-4. Good to go. Use autorecon. `mkdir $PWD/working`
-5. `sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib3rius/autorecon 127.0.0.1 127.0.0.2 [more options]` the options are the same with the original tool.
+## Usage
 
 ```sh
+mkdir -p $PWD/working;
 sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib3rius/autorecon 127.0.0.1 127.0.0.2 --dirbuster.wordlist '/usr/share/seclists/Discovery/Web-Content/common.txt'
 sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib3rius/autorecon 127.0.0.1 127.0.0.2 --proxychains --dirbuster.wordlist '/usr/share/seclists/Discovery/Web-Content/common.txt'
+  # the options are the same with the original tool.
 ```
+
+## FIRST TIME SETUP
+
+1. Clone the repo
+2. Run the script `./docker-wrapper/system-dep/build-dep.sh`. The script will build a docker image containing Kali OS and stable tools that the AutoRecon depends on.
+3. Run the script `./docker-wrapper/build-recon.sh`. The script will pull this repo and build autorecon.
 
 ## USE DOCKER, PROs and CONs
 
