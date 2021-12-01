@@ -17,7 +17,7 @@ from autorecon.io import slugify, e, fformat, cprint, debug, info, warn, error, 
 from autorecon.plugins import Pattern, PortScan, ServiceScan, Report, AutoRecon
 from autorecon.targets import Target, Service
 
-VERSION = "2.0.0"
+VERSION = "2.0.5"
 
 if not os.path.exists(config['config_dir']):
 	shutil.rmtree(config['config_dir'], ignore_errors=True, onerror=None)
@@ -34,7 +34,7 @@ else:
 	if not os.path.exists(os.path.join(config['config_dir'], 'plugins')):
 		shutil.copytree(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'default-plugins'), os.path.join(config['config_dir'], 'plugins'))
 	if not os.path.exists(os.path.join(config['config_dir'], 'VERSION-' + VERSION)):
-		pass
+		warn('It looks like the config/plugins in ' + config['config_dir'] + ' are outdated. Please remove the directory and re-run AutoRecon to rebuild them.')
 
 # Save current terminal settings so we can restore them.
 terminal_settings = termios.tcgetattr(sys.stdin.fileno())
@@ -364,12 +364,12 @@ async def generate_report(plugin, targets):
 			raise Exception(cprint('Error: Report plugin {bblue}' + plugin.name + ' {green}(' + plugin.slug + '){rst} produced an exception:\n\n' + error_text, color=Fore.RED, char='!', printmsg=False))
 
 async def scan_target(target):
-	os.makedirs(os.path.abspath(config['outdir']), exist_ok=True)
+	os.makedirs(os.path.abspath(config['output']), exist_ok=True)
 
 	if config['single_target']:
-		basedir = os.path.abspath(config['outdir'])
+		basedir = os.path.abspath(config['output'])
 	else:
-		basedir = os.path.abspath(os.path.join(config['outdir'], target.address))
+		basedir = os.path.abspath(os.path.join(config['output'], target.address))
 		os.makedirs(basedir, exist_ok=True)
 
 	target.basedir = basedir
@@ -517,6 +517,11 @@ async def scan_target(target):
 			protocol = service.protocol
 			port = service.port
 
+			if config['create_port_dirs']:
+				scandir = os.path.join(scandir, protocol + str(port))
+				os.makedirs(scandir, exist_ok=True)
+				os.makedirs(os.path.join(scandir, 'xml'), exist_ok=True)
+
 			# Special cases for HTTP.
 			http_scheme = 'https' if 'https' in service.name or service.secure is True else 'http'
 
@@ -627,7 +632,12 @@ async def scan_target(target):
 
 						for member_name, _ in inspect.getmembers(plugin, predicate=inspect.ismethod):
 							if member_name == 'manual':
-								plugin.manual(service, plugin_was_run)
+								try:
+									plugin.manual(service, plugin_was_run)
+								except Exception as ex:
+									exc_type, exc_value, exc_tb = sys.exc_info()
+									error_text = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb)[-2:])
+									cprint('Error: Service scan {bblue}' + plugin.name + ' {green}(' + plugin_tag + '){rst} running against {byellow}' + target.address + '{rst} produced an exception when generating manual commands:\n\n' + error_text, color=Fore.RED, char='!', printmsg=True)
 
 								if service.manual_commands:
 									plugin_run = False
@@ -636,14 +646,19 @@ async def scan_target(target):
 											plugin_run = True
 											break
 									if not plugin.run_once_boolean or (plugin.run_once_boolean and not plugin_run):
-										with open(os.path.join(scandir, '_manual_commands.txt'), 'a') as file:
+										with open(os.path.join(target.scandir, '_manual_commands.txt'), 'a') as file:
 											if not heading:
 												file.write(e('[*] {service.name} on {service.protocol}/{service.port}\n\n'))
 												heading = True
 											for description, commands in service.manual_commands.items():
-												file.write('\t[-] ' + e(description) + '\n\n')
-												for command in commands:
-													file.write('\t\t' + e(command) + '\n\n')
+												try:
+													file.write('\t[-] ' + e(description) + '\n\n')
+													for command in commands:
+														file.write('\t\t' + e(command) + '\n\n')
+												except Exception as ex:
+													exc_type, exc_value, exc_tb = sys.exc_info()
+													error_text = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb)[-2:])
+													cprint('Error: Service scan {bblue}' + plugin.name + ' {green}(' + plugin_tag + '){rst} running against {byellow}' + target.address + '{rst} produced an exception when evaluating manual commands:\n\n' + error_text, color=Fore.RED, char='!', printmsg=True)
 											file.flush()
 
 								service.manual_commands = {}
@@ -679,7 +694,7 @@ async def scan_target(target):
 
 			if not service_match:
 				warn('{byellow}[' + target.address + ']{srst} Service ' + service.full_tag() + ' did not match any plugins based on the service name.{rst}', verbosity=2)
-				if service.full_tag() not in target.autorecon.missing_services:
+				if service.name != 'tcpwrapped' and service.full_tag() not in target.autorecon.missing_services:
 					target.autorecon.missing_services.append(service.full_tag())
 
 	for plugin in target.autorecon.plugin_types['report']:
@@ -757,12 +772,12 @@ async def run():
 
 	parser = argparse.ArgumentParser(add_help=False, description='Network reconnaissance tool to port scan and automatically enumerate services found on multiple targets.')
 	parser.add_argument('targets', action='store', help='IP addresses (e.g. 10.0.0.1), CIDR notation (e.g. 10.0.0.1/24), or resolvable hostnames (e.g. foo.bar) to scan.', nargs='*')
-	parser.add_argument('-t', '--targets', action='store', type=str, default='', dest='target_file', help='Read targets from file.')
+	parser.add_argument('-t', '--target-file', action='store', type=str, default='', help='Read targets from file.')
 	parser.add_argument('-p', '--ports', action='store', type=str, help='Comma separated list of ports / port ranges to scan. Specify TCP/UDP ports by prepending list with T:/U: To scan both TCP/UDP, put port(s) at start or specify B: e.g. 53,T:21-25,80,U:123,B:123. Default: %(default)s')
 	parser.add_argument('-m', '--max-scans', action='store', type=int, help='The maximum number of concurrent scans to run. Default: %(default)s')
 	parser.add_argument('-mp', '--max-port-scans', action='store', type=int, help='The maximum number of concurrent port scans to run. Default: 10 (approx 20%% of max-scans unless specified)')
 	parser.add_argument('-c', '--config', action='store', type=str, default=config_file, dest='config_file', help='Location of AutoRecon\'s config file. Default: %(default)s')
-	parser.add_argument('-g', '--global-file', action='store', type=str, dest='global_file', help='Location of AutoRecon\'s global file. Default: %(default)s')
+	parser.add_argument('-g', '--global-file', action='store', type=str, help='Location of AutoRecon\'s global file. Default: %(default)s')
 	parser.add_argument('--tags', action='store', type=str, default='default', help='Tags to determine which plugins should be included. Separate tags by a plus symbol (+) to group tags together. Separate groups with a comma (,) to create multiple groups. For a plugin to be included, it must have all the tags specified in at least one group. Default: %(default)s')
 	parser.add_argument('--exclude-tags', action='store', type=str, default='', metavar='TAGS', help='Tags to determine which plugins should be excluded. Separate tags by a plus symbol (+) to group tags together. Separate groups with a comma (,) to create multiple groups. For a plugin to be excluded, it must have all the tags specified in at least one group. Default: %(default)s')
 	parser.add_argument('--port-scans', action='store', type=str, metavar='PLUGINS', help='Override --tags / --exclude-tags for the listed PortScan plugins (comma separated). Default: %(default)s')
@@ -771,7 +786,7 @@ async def run():
 	parser.add_argument('--plugins-dir', action='store', type=str, help='The location of the plugins directory. Default: %(default)s')
 	parser.add_argument('--add-plugins-dir', action='store', type=str, metavar='PLUGINS_DIR', help='The location of an additional plugins directory to add to the main one. Default: %(default)s')
 	parser.add_argument('-l', '--list', action='store', nargs='?', const='plugins', metavar='TYPE', help='List all plugins or plugins of a specific type. e.g. --list, --list port, --list service')
-	parser.add_argument('-o', '--output', action='store', dest='outdir', help='The output directory for results. Default: %(default)s')
+	parser.add_argument('-o', '--output', action='store', help='The output directory for results. Default: %(default)s')
 	parser.add_argument('--single-target', action='store_true', help='Only scan a single target. A directory named after the target will not be created. Instead, the directory structure will be created within the output directory. Default: %(default)s')
 	parser.add_argument('--only-scans-dir', action='store_true', help='Only create the "scans" directory for results. Other directories (e.g. exploit, loot, report) will not be created. Default: %(default)s')
 	parser.add_argument('--create-port-dirs', action='store_true', help='Create directories for ports within the "scans" directory (e.g. scans/tcp80, scans/udp53) and store results in these directories. Default: %(default)s')
@@ -1190,7 +1205,7 @@ async def run():
 
 	if len(args.target_file) > 0:
 		if not os.path.isfile(args.target_file):
-			error('The target file ' + args.target_file + ' was not found.')
+			error('The target file "' + args.target_file + '" was not found.')
 			sys.exit(1)
 		try:
 			with open(args.target_file, 'r') as f:
