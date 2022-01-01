@@ -16,9 +16,9 @@ sudo docker run -it -v $PWD/working:/results --rm --name autorecon-container tib
 ```sh
 tmpDir=$(mktemp -d -t ar-XXXXXXXX); cd $tmpDir;
 git clone https://github.com/schen0x/AutoRecon.git;
-cd ./AutoRecon/docker-wrapper/system-dep/ && bash build-dep.sh; # build system image && tools
-cd ./AutoRecon/docker-wrapper/ && bash build-recon.sh; # build the autorecon from this repo
-# sudo docker image ls; # to confirm the image is built
+cd $tmpDir/AutoRecon/docker-wrapper/system-dep/ && bash build-dep.sh; # build system image && tools
+cd $tmpDir/AutoRecon/docker-wrapper/ && bash build-recon.sh; # build the autorecon from this repo
+# sudo docker image ls; # to confirm the images are built
 ```
 
 ## USE DOCKER, PROs and CONs
