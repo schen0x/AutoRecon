@@ -2,7 +2,7 @@
 # sudo docker build -t autorecon/dep .
 
 # FROM kalilinux/kali-bleeding-edge:latest AS builder
-FROM kalilinux/kali AS builder
+FROM kalilinux/kali-last-release AS builder
 RUN apt-get update
 RUN apt-get -y install sudo git
 RUN sudo apt-get -y install python3 python3-pip
