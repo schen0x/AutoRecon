@@ -1,7 +1,7 @@
 import asyncio, inspect, os
 from typing import final
 from autorecon.config import config
-from autorecon.io import e, info
+from autorecon.io import e, info, warn, error
 
 class Target:
 
@@ -30,6 +30,21 @@ class Target:
 
 	async def extract_services(self, stream, regex=None):
 		return await self.autorecon.extract_services(stream, regex)
+
+	@final
+	def info(self, msg, verbosity=0):
+		plugin = inspect.currentframe().f_back.f_locals['self']
+		info('{bright}[{yellow}' + self.address + '{crst}/{bgreen}' + plugin.slug + '{crst}]{rst} ' + msg)
+
+	@final
+	def warn(self, msg, verbosity=0):
+		plugin = inspect.currentframe().f_back.f_locals['self']
+		warn('{bright}[{yellow}' + self.address + '{crst}/{bgreen}' + plugin.slug + '{crst}]{rst} ' + msg)
+
+	@final
+	def error(self, msg, verbosity=0):
+		plugin = inspect.currentframe().f_back.f_locals['self']
+		error('{bright}[{yellow}' + self.address + '{crst}/{bgreen}' + plugin.slug + '{crst}]{rst} ' + msg)
 
 	async def execute(self, cmd, blocking=True, outfile=None, errfile=None, future_outfile=None):
 		target = self
@@ -121,6 +136,21 @@ class Service:
 		self.add_manual_commands(description, command)
 
 	@final
+	def info(self, msg):
+		plugin = inspect.currentframe().f_back.f_locals['self']
+		info('{bright}[{yellow}' + self.target.address + '{crst}/{bgreen}' + self.tag() + '/' + plugin.slug + '{crst}]{rst} ' + msg)
+
+	@final
+	def warn(self, msg):
+		plugin = inspect.currentframe().f_back.f_locals['self']
+		warn('{bright}[{yellow}' + self.target.address + '{crst}/{bgreen}' + self.tag() + '/' + plugin.slug + '{crst}]{rst} ' + msg)
+
+	@final
+	def error(self, msg):
+		plugin = inspect.currentframe().f_back.f_locals['self']
+		error('{bright}[{yellow}' + self.target.address + '{crst}/{bgreen}' + self.tag() + '/' + plugin.slug + '{crst}]{rst} ' + msg)
+
+	@final
 	async def execute(self, cmd, blocking=True, outfile=None, errfile=None, future_outfile=None):
 		target = self.target
 
@@ -134,7 +164,7 @@ class Service:
 		port = self.port
 		name = self.name
 
-		if config['create_port_dirs']:
+		if not config['no_port_dirs']:
 			scandir = os.path.join(scandir, protocol + str(port))
 			os.makedirs(scandir, exist_ok=True)
 			os.makedirs(os.path.join(scandir, 'xml'), exist_ok=True)

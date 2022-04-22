@@ -1,7 +1,7 @@
 import asyncio, inspect, os, re, sys
 from typing import final
 from autorecon.config import config
-from autorecon.io import slugify, error, fail, CommandStreamReader
+from autorecon.io import slugify, info, warn, error, fail, CommandStreamReader
 from autorecon.targets import Service
 
 class Pattern:
@@ -90,6 +90,18 @@ class Plugin(object):
 		except re.error:
 			fail('Error: The pattern "' + pattern + '" in the plugin "' + self.name + '" is invalid regex.')
 
+	@final
+	def info(self, msg, verbosity=0):
+		info('{bright}[{bgreen}' + self.slug + '{crst}]{rst} ' + msg)
+
+	@final
+	def warn(self, msg, verbosity=0):
+		warn('{bright}[{bgreen}' + self.slug + '{crst}]{rst} ' + msg)
+
+	@final
+	def error(self, msg, verbosity=0):
+		error('{bright}[{bgreen}' + self.slug + '{crst}]{rst} ' + msg)
+
 class PortScan(Plugin):
 
 	def __init__(self):
@@ -111,6 +123,8 @@ class ServiceScan(Plugin):
 		self.ignore_service_names = []
 		self.run_once_boolean = False
 		self.require_ssl_boolean = False
+		self.max_target_instances = 0
+		self.max_global_instances = 0
 
 	@final
 	def match_service(self, protocol, port, name, negative_match=False):

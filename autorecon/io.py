@@ -122,20 +122,38 @@ class CommandStreamReader(object):
 				continue
 
 			if line != '':
-				info('{bright}[{yellow}' + self.target.address + '{crst}/{bgreen}' + self.tag + '{crst}]{rst} ' + line.replace('{', '{{').replace('}', '}}'), verbosity=3)
+				info('{bright}[{yellow}' + self.target.address + '{crst}/{bgreen}' + self.tag + '{crst}]{rst} ' + line.strip().replace('{', '{{').replace('}', '}}'), verbosity=3)
 
 			# Check lines for pattern matches.
 			for p in self.patterns:
-				matches = p.pattern.findall(line)
-				for match in matches:
-					async with self.target.lock:
-						with open(os.path.join(self.target.scandir, '_patterns.log'), 'a') as file:
+				description = ''
+
+				# Match and replace entire pattern.
+				match = p.pattern.search(line)
+				if match:
+					if p.description:
+						description = p.description.replace('{match}', line[match.start():match.end()])
+
+						# Match and replace substrings.
+						matches = p.pattern.findall(line)
+						if len(matches) > 0 and isinstance(matches[0], tuple):
+							matches = list(matches[0])
+
+						match_count = 1
+						for match in matches:
 							if p.description:
-								info('{bright}[{yellow}' + self.target.address + '{crst}/{bgreen}' + self.tag + '{crst}]{rst} {bmagenta}' + p.description.replace('{match}', match) + '{rst}', verbosity=2)
-								file.writelines(p.description.replace('{match}', match) + '\n\n')
-							else:
-								info('{bright}[{yellow}' + self.target.address + '{crst}/{bgreen}' + self.tag + '{crst}]{rst} {bmagenta}Matched Pattern: ' + match + '{rst}', verbosity=2)
-								file.writelines('Matched Pattern: ' + match + '\n\n')
+								description = description.replace('{match' + str(match_count) + '}', match)
+							match_count += 1
+
+						async with self.target.lock:
+							with open(os.path.join(self.target.scandir, '_patterns.log'), 'a') as file:
+								info('{bright}[{yellow}' + self.target.address + '{crst}/{bgreen}' + self.tag + '{crst}]{rst} {bmagenta}' + description + '{rst}', verbosity=2)
+								file.writelines(description + '\n\n')
+					else:
+						info('{bright}[{yellow}' + self.target.address + '{crst}/{bgreen}' + self.tag + '{crst}]{rst} {bmagenta}Matched Pattern: ' + line[match.start():match.end()] + '{rst}', verbosity=2)
+						async with self.target.lock:
+							with open(os.path.join(self.target.scandir, '_patterns.log'), 'a') as file:
+								file.writelines('Matched Pattern: ' + line[match.start():match.end()] + '\n\n')
 
 			if self.outfile is not None:
 				with open(self.outfile, 'a') as writer:

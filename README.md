@@ -63,36 +63,26 @@ AutoRecon was inspired by three tools which the author used during the OSCP labs
 * Four levels of verbosity, controllable by command-line options, and during scans using Up/Down arrows.
 * Colorized output for distinguishing separate pieces of information. Can be turned off for accessibility reasons.
 
-## Requirements
+## Installation
 
-- Python 3
-- `python3-pip`
-- `pipx` (optional, but recommended)
+There are three ways to install AutoRecon: pipx, pip, and manually. Before installation using any of these methods, certain requirements need to be fulfilled. If you have not refreshed your apt cache recently, run the following command so you are installing the latest available packages:
+
+```bash
+sudo apt update
+```
 
 ### Python 3
 
-If you don't have these installed, and are running Kali Linux, you can execute the following:
+AutoRecon requires the usage of Python 3.7+ and pip, which can be installed on Kali Linux using the following commands:
 
 ```bash
 sudo apt install python3
 sudo apt install python3-pip
 ```
 
-### `pipx`
+### Supporting Packages
 
-Further, it's recommended you use `pipx` to manage your python packages; this installs each python package in it's own virtualenv, and makes it available in the global context, which avoids conflicting package dependencies and the resulting instability. To summarize the installation instructions:
-
-```bash
-sudo apt install python3-venv
-python3 -m pip install --user pipx
-python3 -m pipx ensurepath
-```
-
-You will have to re-source your ~/.bashrc or ~/.zshrc file (or open a new tab) after running these commands in order to use pipx.
-
-### Supporting packages
-
-Several commands used in AutoRecon reference the SecLists project, in the directory /usr/share/seclists/. You can either manually download the SecLists project to this directory (https://github.com/danielmiessler/SecLists), or if you are using Kali Linux (**highly recommended**) you can run the following:
+Several commands used in AutoRecon reference the SecLists project, in the directory /usr/share/seclists/. You can either manually download the SecLists project to this directory (https://github.com/danielmiessler/SecLists), or if you are using Kali Linux (**highly recommended**) you can run the following commands:
 
 ```bash
 sudo apt install seclists
@@ -106,6 +96,7 @@ Additionally the following commands may need to be installed, depending on your 
 curl
 enum4linux
 feroxbuster
+gobuster
 impacket-scripts
 nbtscan
 nikto
@@ -123,40 +114,51 @@ whatweb
 wkhtmltopdf
 ```
 
-On Kali Linux, you can ensure these are all installed using the following command:
+On Kali Linux, you can ensure these are all installed using the following commands:
 
 ```bash
-sudo apt install seclists curl enum4linux feroxbuster impacket-scripts nbtscan nikto nmap onesixtyone oscanner redis-tools smbclient smbmap snmp sslscan sipvicious tnscmd10g whatweb wkhtmltopdf
+sudo apt install seclists curl enum4linux feroxbuster gobuster impacket-scripts nbtscan nikto nmap onesixtyone oscanner redis-tools smbclient smbmap snmp sslscan sipvicious tnscmd10g whatweb wkhtmltopdf
 ```
 
-## Installation
+### Installation Method #1: pipx (Recommended)
 
-Ensure you have all of the requirements installed as per the previous section.
+It is recommended you use `pipx` to install AutoRecon. pipx will install AutoRecon in it's own virtual environment, and make it available in the global context, avoiding conflicting package dependencies and the resulting instability. First, install pipx using the following commands:
 
-### Using `pipx` (recommended)
-
-If installing using pipx, you'll need to run the installation command as root or with sudo in order to be able to run autorecon using sudo:
 
 ```bash
-sudo pipx install git+https://github.com/Tib3rius/AutoRecon.git
+sudo apt install python3-venv
+python3 -m pip install --user pipx
+python3 -m pipx ensurepath
 ```
 
-Note that if you want to run AutoRecon using sudo, you have to use _one_ of the following examples:
+You will have to re-source your ~/.bashrc or ~/.zshrc file (or open a new tab) after running these commands in order to use pipx.
+
+Install AutoRecon using the following command:
+
+```bash
+pipx install git+https://github.com/Tib3rius/AutoRecon.git
+```
+
+Note that if you want to run AutoRecon using sudo (required for faster SYN scanning and UDP scanning), you have to use _one_ of the following examples:
 
 ```bash
 sudo env "PATH=$PATH" autorecon [OPTIONS]
 sudo $(which autorecon) [OPTIONS]
 ```
 
-### Using `pip`
+### Installation Method #2: pip
 
-If installing using pip, you'll need to run the installation command as root or with sudo in order to be able to run autorecon using sudo:
+Alternatively you can use `pip` to install AutoRecon using the following command:
 
 ```bash
-sudo python3 -m pip install git+https://github.com/Tib3rius/AutoRecon.git
+python3 -m pip install git+https://github.com/Tib3rius/AutoRecon.git
 ```
 
-### Manual
+Note that if you want to run AutoRecon using sudo (required for faster SYN scanning and UDP scanning), you will have to run the above command as the root user (or using sudo).
+
+Similarly to `pipx`, if installed using `pip` you can run AutoRecon by simply executing `autorecon`.
+
+### Installation Method #3: Manually
 
 If you'd prefer not to use `pip` or `pipx`, you can always still install and execute `autorecon.py` manually as a script. From within the AutoRecon directory, install the dependencies:
 
@@ -170,63 +172,85 @@ You will then be able to run the `autorecon.py` script:
 python3 autorecon.py [OPTIONS] 127.0.0.1
 ```
 
-See detailed usage options below.
-
 ## Upgrading
 
+### pipx
+
+Upgrading AutoRecon when it has been installed with pipx is the easiest, and is why the method is recommended. Simply run the following command:
+
+```bash
+pipx upgrade autorecon
+```
+
+### pip
+
+If you've installed AutoRecon using pip, you will first have to uninstall AutoRecon and then re-install using the same install command:
+
+```bash
+python3 -m pip uninstall autorecon
+python3 -m pip install git+https://github.com/Tib3rius/AutoRecon.git
+```
+
+### Manually
+
+If you've installed AutoRecon manually, simply change to the AutoRecon directory and run the following command:
+
+```bash
+git pull
+```
+
+Assuming you did not modify any of the content in the AutoRecon directory, this should pull the latest code from this GitHub repo, after which you can run AutoRecon using the autorecon.py script as per usual.
+
+### Plugins
+
 A plugin update process is in the works. Until then, after upgrading, remove the ~/.config/AutoRecon directory and run AutoRecon with any argument to repopulate with the latest files.
+
+If you depend on the ~/.config/AutoRecon/config.toml file (i.e. you have made modifications to it) then simply remove everything in the ~/.config/AutoRecon apart from the config.toml file (including the VERSION-x.x.x file).
 
 ## Usage
 
 AutoRecon uses Python 3 specific functionality and does not support Python 2.
 
 ```
-usage: autorecon [-t TARGET_FILE] [-p PORTS] [-m MAX_SCANS] [-mp MAX_PORT_SCANS] [-c CONFIG_FILE] [-g GLOBAL_FILE]
-                 [--tags TAGS] [--exclude-tags TAGS] [--port-scans PLUGINS] [--service-scans PLUGINS]
-                 [--reports PLUGINS] [--plugins-dir PLUGINS_DIR] [--add-plugins-dir PLUGINS_DIR] [-l [TYPE]]
-                 [-o OUTPUT] [--single-target] [--only-scans-dir] [--create-port-dirs] [--heartbeat HEARTBEAT]
-                 [--timeout TIMEOUT] [--target-timeout TARGET_TIMEOUT] [--nmap NMAP | --nmap-append NMAP_APPEND]
-                 [--proxychains] [--disable-sanity-checks] [--disable-keyboard-control]
-                 [--force-services SERVICE [SERVICE ...]] [--accessible] [-v] [--version] [--curl.path VALUE]
-                 [--dirbuster.tool {feroxbuster,gobuster,dirsearch,ffuf,dirb}]
+usage: autorecon [-t TARGET_FILE] [-p PORTS] [-m MAX_SCANS] [-mp MAX_PORT_SCANS] [-c CONFIG_FILE] [-g GLOBAL_FILE] [--tags TAGS]
+                 [--exclude-tags TAGS] [--port-scans PLUGINS] [--service-scans PLUGINS] [--reports PLUGINS] [--plugins-dir PLUGINS_DIR]
+                 [--add-plugins-dir PLUGINS_DIR] [-l [TYPE]] [-o OUTPUT] [--single-target] [--only-scans-dir] [--no-port-dirs]
+                 [--heartbeat HEARTBEAT] [--timeout TIMEOUT] [--target-timeout TARGET_TIMEOUT] [--nmap NMAP | --nmap-append NMAP_APPEND]
+                 [--proxychains] [--disable-sanity-checks] [--disable-keyboard-control] [--force-services SERVICE [SERVICE ...]] [--accessible]
+                 [-v] [--version] [--curl.path VALUE] [--dirbuster.tool {feroxbuster,gobuster,dirsearch,ffuf,dirb}]
                  [--dirbuster.wordlist VALUE [VALUE ...]] [--dirbuster.threads VALUE] [--dirbuster.ext VALUE]
-                 [--onesixtyone.community-strings VALUE] [--global.username-wordlist VALUE]
-                 [--global.password-wordlist VALUE] [--global.domain VALUE] [-h]
+                 [--onesixtyone.community-strings VALUE] [--global.username-wordlist VALUE] [--global.password-wordlist VALUE]
+                 [--global.domain VALUE] [-h]
                  [targets ...]
 
 Network reconnaissance tool to port scan and automatically enumerate services found on multiple targets.
 
 positional arguments:
-  targets               IP addresses (e.g. 10.0.0.1), CIDR notation (e.g. 10.0.0.1/24), or resolvable hostnames (e.g.
-                        foo.bar) to scan.
+  targets               IP addresses (e.g. 10.0.0.1), CIDR notation (e.g. 10.0.0.1/24), or resolvable hostnames (e.g. foo.bar) to scan.
 
 optional arguments:
   -t TARGET_FILE, --target-file TARGET_FILE
                         Read targets from file.
   -p PORTS, --ports PORTS
-                        Comma separated list of ports / port ranges to scan. Specify TCP/UDP ports by prepending list
-                        with T:/U: To scan both TCP/UDP, put port(s) at start or specify B: e.g.
-                        53,T:21-25,80,U:123,B:123. Default: None
+                        Comma separated list of ports / port ranges to scan. Specify TCP/UDP ports by prepending list with T:/U: To scan both
+                        TCP/UDP, put port(s) at start or specify B: e.g. 53,T:21-25,80,U:123,B:123. Default: None
   -m MAX_SCANS, --max-scans MAX_SCANS
                         The maximum number of concurrent scans to run. Default: 50
   -mp MAX_PORT_SCANS, --max-port-scans MAX_PORT_SCANS
-                        The maximum number of concurrent port scans to run. Default: 10 (approx 20% of max-scans unless
-                        specified)
+                        The maximum number of concurrent port scans to run. Default: 10 (approx 20% of max-scans unless specified)
   -c CONFIG_FILE, --config CONFIG_FILE
                         Location of AutoRecon's config file. Default: ~/.config/AutoRecon/config.toml
   -g GLOBAL_FILE, --global-file GLOBAL_FILE
                         Location of AutoRecon's global file. Default: ~/.config/AutoRecon/global.toml
-  --tags TAGS           Tags to determine which plugins should be included. Separate tags by a plus symbol (+) to group
-                        tags together. Separate groups with a comma (,) to create multiple groups. For a plugin to be
-                        included, it must have all the tags specified in at least one group. Default: default
-  --exclude-tags TAGS   Tags to determine which plugins should be excluded. Separate tags by a plus symbol (+) to group
-                        tags together. Separate groups with a comma (,) to create multiple groups. For a plugin to be
-                        excluded, it must have all the tags specified in at least one group. Default: None
-  --port-scans PLUGINS  Override --tags / --exclude-tags for the listed PortScan plugins (comma separated). Default:
-                        None
+  --tags TAGS           Tags to determine which plugins should be included. Separate tags by a plus symbol (+) to group tags together. Separate
+                        groups with a comma (,) to create multiple groups. For a plugin to be included, it must have all the tags specified in
+                        at least one group. Default: default
+  --exclude-tags TAGS   Tags to determine which plugins should be excluded. Separate tags by a plus symbol (+) to group tags together. Separate
+                        groups with a comma (,) to create multiple groups. For a plugin to be excluded, it must have all the tags specified in
+                        at least one group. Default: None
+  --port-scans PLUGINS  Override --tags / --exclude-tags for the listed PortScan plugins (comma separated). Default: None
   --service-scans PLUGINS
-                        Override --tags / --exclude-tags for the listed ServiceScan plugins (comma separated). Default:
-                        None
+                        Override --tags / --exclude-tags for the listed ServiceScan plugins (comma separated). Default: None
   --reports PLUGINS     Override --tags / --exclude-tags for the listed Report plugins (comma separated). Default: None
   --plugins-dir PLUGINS_DIR
                         The location of the plugins directory. Default: ~/.config/AutoRecon/plugins
@@ -236,21 +260,21 @@ optional arguments:
                         List all plugins or plugins of a specific type. e.g. --list, --list port, --list service
   -o OUTPUT, --output OUTPUT
                         The output directory for results. Default: results
-  --single-target       Only scan a single target. A directory named after the target will not be created. Instead, the
-                        directory structure will be created within the output directory. Default: False
-  --only-scans-dir      Only create the "scans" directory for results. Other directories (e.g. exploit, loot, report)
-                        will not be created. Default: False
-  --create-port-dirs    Create directories for ports within the "scans" directory (e.g. scans/tcp80, scans/udp53) and
-                        store results in these directories. Default: True
+  --single-target       Only scan a single target. A directory named after the target will not be created. Instead, the directory structure will
+                        be created within the output directory. Default: False
+  --only-scans-dir      Only create the "scans" directory for results. Other directories (e.g. exploit, loot, report) will not be created.
+                        Default: False
+  --no-port-dirs        Don't create directories for ports (e.g. scans/tcp80, scans/udp53). Instead store all results in the "scans" directory
+                        itself. Default: False
   --heartbeat HEARTBEAT
                         Specifies the heartbeat interval (in seconds) for scan status messages. Default: 60
   --timeout TIMEOUT     Specifies the maximum amount of time in minutes that AutoRecon should run for. Default: None
   --target-timeout TARGET_TIMEOUT
-                        Specifies the maximum amount of time in minutes that a target should be scanned for before
-                        abandoning it and moving on. Default: None
-  --nmap NMAP           Override the {nmap_extra} variable in scans. Default: -vv --reason -Pn
+                        Specifies the maximum amount of time in minutes that a target should be scanned for before abandoning it and moving on.
+                        Default: None
+  --nmap NMAP           Override the {nmap_extra} variable in scans. Default: -vv --reason -Pn -T4
   --nmap-append NMAP_APPEND
-                        Append to the default {nmap_extra} variable in scans. Default: -T4
+                        Append to the default {nmap_extra} variable in scans. Default:
   --proxychains         Use if you are running AutoRecon via proxychains. Default: False
   --disable-sanity-checks
                         Disable sanity checks that would otherwise prevent the scans from running. Default: False
@@ -271,25 +295,22 @@ plugin arguments:
                         The tool to use for directory busting. Default: feroxbuster
   --dirbuster.wordlist VALUE [VALUE ...]
                         The wordlist(s) to use when directory busting. Separate multiple wordlists with spaces. Default:
-                        ['/usr/share/seclists/Discovery/Web-Content/common.txt', '/usr/share/seclists/Discovery/Web-
-                        Content/big.txt', '/usr/share/seclists/Discovery/Web-Content/raft-large-words.txt']
+                        ['~/.config/AutoRecon/wordlists/dirbuster.txt']
   --dirbuster.threads VALUE
                         The number of threads to use when directory busting. Default: 10
   --dirbuster.ext VALUE
                         The extensions you wish to fuzz (no dot, comma separated). Default: txt,html,php,asp,aspx,jsp
   --onesixtyone.community-strings VALUE
-                        The file containing a list of community strings to try. Default:
-                        /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings-onesixtyone.txt
+                        The file containing a list of community strings to try. Default: /usr/share/seclists/Discovery/SNMP/common-snmp-
+                        community-strings-onesixtyone.txt
 
 global plugin arguments:
   These are optional arguments that can be used by all plugins.
 
   --global.username-wordlist VALUE
-                        A wordlist of usernames, useful for bruteforcing. Default: /usr/share/seclists/Usernames/top-
-                        usernames-shortlist.txt
+                        A wordlist of usernames, useful for bruteforcing. Default: /usr/share/seclists/Usernames/top-usernames-shortlist.txt
   --global.password-wordlist VALUE
-                        A wordlist of passwords, useful for bruteforcing. Default:
-                        /usr/share/seclists/Passwords/darkweb2017-top100.txt
+                        A wordlist of passwords, useful for bruteforcing. Default: /usr/share/seclists/Passwords/darkweb2017-top100.txt
   --global.domain VALUE
                         The domain to use (if known). Used for DNS and/or Active Directory. Default: None
 ```
@@ -321,6 +342,8 @@ By default, results will be stored in the ./results directory. A new sub directo
 └── scans/
 	├── _commands.log
 	├── _manual_commands.txt
+	├── tcp80/
+	├── udp53/
 	└── xml/
 ```
 
@@ -337,6 +360,8 @@ The report directory contains some auto-generated files and directories that are
 The scans directory is where all results from scans performed by AutoRecon will go. This includes port scans / service detection scans, as well as any service enumeration scans. It also contains two other files:
 * \_commands.log contains a list of every command AutoRecon ran against the target. This is useful if one of the commands fails and you want to run it again with modifications.
 * \_manual_commands.txt contains any commands that are deemed "too dangerous" to run automatically, either because they are too intrusive, require modification based on human analysis, or just work better when there is a human monitoring them.
+
+By default, directories are created for each open port (e.g. tcp80, udp53) and scan results for the services found on those ports are stored in their respective directories. You can disable this behavior using the --no-port-dirs command line option, and scan results will instead be stored in the scans directory itself.
 
 If a scan results in an error, a file called \_errors.log will also appear in the scans directory with some details to alert the user.
 
